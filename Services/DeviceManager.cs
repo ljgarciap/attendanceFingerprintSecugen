@@ -13,26 +13,12 @@ namespace AttendanceFingerprint.Services
             {
                 Console.WriteLine("=== INICIANDO DETECCIÓN DE DISPOSITIVOS ===");
 
-                bool hasDigitalPersona = CheckForDigitalPersona();
-                bool hasPersona4500 = CheckForPersona4500();
                 bool hasSecureGen = CheckForSecureGen();
-
-                Console.WriteLine($"Resultados - DigitalPersona: {hasDigitalPersona}, Persona4500: {hasPersona4500}, SecureGen: {hasSecureGen}");
 
                 if (hasSecureGen)
                 {
                     Console.WriteLine("🎯 SELECCIONANDO SECUGEN");
                     return FingerprintDeviceType.SecureGenHamster20;
-                }
-                if (hasDigitalPersona)
-                {
-                    Console.WriteLine("🎯 SELECCIONANDO DIGITALPERSONA");
-                    return FingerprintDeviceType.DigitalPersonaUareU;
-                }
-                if (hasPersona4500)
-                {
-                    Console.WriteLine("🎯 SELECCIONANDO PERSONA4500");
-                    return FingerprintDeviceType.Persona4500;
                 }
 
                 Console.WriteLine("❌ NO HAY DISPOSITIVOS DETECTADOS");
@@ -42,73 +28,6 @@ namespace AttendanceFingerprint.Services
             {
                 Console.WriteLine($"⚠️ Error en detección: {ex.Message}");
                 return FingerprintDeviceType.None;
-            }
-        }
-
-        private static bool CheckForPersona4500()
-        {
-            try
-            {
-                // Múltiples formas de detectar el Persona 4500
-                string[] queries = {
-                    "SELECT * FROM Win32_PnPEntity WHERE Description LIKE '%Persona%'",
-                    "SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%Persona%'",
-                    "SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE '%VID_08FF%'",
-                    "SELECT * FROM Win32_PnPEntity WHERE Manufacturer LIKE '%Crossmatch%'",
-                    "SELECT * FROM Win32_PnPEntity WHERE PNPClass = 'Biometric'"
-                };
-
-                foreach (var query in queries)
-                {
-                    using (var searcher = new ManagementObjectSearcher(query))
-                    {
-                        if (searcher.Get().Count > 0)
-                        {
-                            Console.WriteLine($"✅ Detectado con query: {query}");
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error buscando Persona: {ex.Message}");
-                return false;
-            }
-        }
-
-        private static bool CheckForDigitalPersona()
-        {
-            try
-            {
-                string[] queries = {
-            "SELECT * FROM Win32_PnPEntity WHERE Description LIKE '%U.are.U%'",
-            "SELECT * FROM Win32_PnPEntity WHERE Name LIKE '%U.are.U%'",
-            "SELECT * FROM Win32_PnPEntity WHERE DeviceID LIKE '%VID_05BA%'",
-            "SELECT * FROM Win32_PnPEntity WHERE Manufacturer LIKE '%DigitalPersona%'",
-            "SELECT * FROM Win32_PnPEntity WHERE PNPClass = 'Biometric' AND Description LIKE '%Fingerprint%'"
-        };
-
-                foreach (var query in queries)
-                {
-                    using (var searcher = new ManagementObjectSearcher(query))
-                    {
-                        if (searcher.Get().Count > 0)
-                        {
-                            Console.WriteLine($"✅ Detectado DigitalPersona con query: {query}");
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"⚠️ Error buscando DigitalPersona: {ex.Message}");
-                return false;
             }
         }
 
@@ -217,10 +136,6 @@ namespace AttendanceFingerprint.Services
         {
             switch (deviceType)
             {
-                case FingerprintDeviceType.DigitalPersonaUareU:
-                case FingerprintDeviceType.Persona4500:
-                    Console.WriteLine("📱 Instanciando DigitalPersonaDevice");
-                    return new DigitalPersonaDevice();
 
                 case FingerprintDeviceType.SecuGenHamster20:
                 case FingerprintDeviceType.SecureGenHamster20:
@@ -240,8 +155,6 @@ namespace AttendanceFingerprint.Services
     public enum FingerprintDeviceType
     {
         None,
-        DigitalPersonaUareU,
-        Persona4500,
         SecuGenHamster20,
         SecureGenHamster20 // Alias para evitar confusión
     }
